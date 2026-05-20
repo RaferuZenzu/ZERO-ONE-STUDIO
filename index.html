@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZEROONE.STUDIO // PREMIUM MINIMALIST PHOTOBOOTH</title>
+    <style>
+        /* ==========================================================================
+           1. ROOT VARIABLES & GLOBAL STYLES 
+           ========================================================================== */
+        :root {
+            --bg-primary: #f4f4f6;
+            --bg-secondary: #ffffff;
+            --text-primary: #18181b;
+            --text-secondary: #71717a;
+            --accent: #27272a;
+            --accent-hover: #09090b;
+            --border: #e4e4e7;
+            --danger: #ef4444;
+            --radius-lg: 16px;
+            --radius-md: 8px;
+            --radius-sm: 4px;
+            --shadow: 0 4px 20px -2px rgba(24, 24, 27, 0.05);
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* ==========================================================================
+           2. NAVIGATION & HEADER
+           ========================================================================== */
+        header {
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 1.25rem 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand-logo {
+            width: 12px;
+            height: 12px;
+            background-color: var(--text-primary);
+            border-radius: 50%;
+        }
+
+        .brand-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .system-time {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.5px;
+        }
+
+        /* ==========================================================================
+           3. MAIN APP LAYOUT MESH
+           ========================================================================== */
+        .app-container {
+            max-width: 1440px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2.5rem;
+            display: grid;
+            grid-template-columns: 1fr 420px;
+            gap: 2.5rem;
+            flex-grow: 1;
+        }
+
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                padding: 1.25rem;
+                gap: 1.5rem;
+            }
+        }
+
+        /* ==========================================================================
+           4. LEFT REGION: WORKSPACE & CAPTURE ENGINE
+           ========================================================================== */
+        .workspace {
+            display: flex;
+            flex-direction: column;
+            gap: 1.75rem;
+        }
+
+        .viewfinder-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .viewfinder-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .viewfinder-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+        }
+
+        .camera-viewport {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            background-color: #121214;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
+        }
+
+        #webcam-feed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* Mirror effect */
+            transition: filter 0.3s ease;
+        }
+
+        /* Guides & Overlay Grids */
+        .viewport-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .countdown-overlay {
+            position: absolute;
+            background: rgba(24, 24, 27, 0.85);
+            color: #ffffff;
+            font-size: 6rem;
+            font-weight: 800;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            backdrop-filter: blur(8px);
+        }
+
+        .countdown-overlay.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .action-hub {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        /* Button Architecture */
+        .btn {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            padding: 0.85rem 1.75rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+            user-select: none;
+        }
+
+        .btn:hover {
+            border-color: var(--text-primary);
+            background-color: #f4f4f6;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: var(--bg-primary);
+            border-color: var(--border);
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: #ffffff;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-danger {
+            background-color: transparent;
+            color: var(--danger);
+            border-color: var(--border);
+        }
+
+        .btn-danger:hover {
+            background-color: #fef2f2;
+            border-color: var(--danger);
+        }
+
+        /* ==========================================================================
+           5. PRESET MODULATORS (FILTERS SECTION)
+           ========================================================================== */
+        .filter-shelf {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .shelf-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin-bottom: 1.25rem;
+        }
+
+        .filter-matrix {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.75rem;
+        }
+
+        @media (max-width: 640px) {
+            .filter-matrix {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .filter-node {
+            background: var(--bg-primary);
+            border: 2px solid transparent;
+            border-radius: var(--radius-md);
+            padding: 1rem 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .filter-node:hover {
+            background-color: #e4e4e7;
+        }
+
+        .filter-node.active {
+            background-color: var(--bg-secondary);
+            border-color: var(--text-primary);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .filter-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .filter-desc {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        /* Non-Alay Filter Configurations Definition Matrix */
+        .fx-normal { filter: none; }
+        .fx-k-mono { filter: grayscale(100%) contrast(1.1) brightness(0.95); }
+        .fx-warm { filter: sepia(0.25) saturate(1.1) contrast(0.95) brightness(1.02); }
+        .fx-fade { filter: contrast(0.88) brightness(1.04) sepia(0.15) saturate(0.9); }
+        .fx-cold { filter: hue-rotate(15deg) saturate(0.95) brightness(0.98) contrast(1.05); }
+
+        /* ==========================================================================
+           6. RIGHT REGION: BOOTH MANAGER & DOWNLOAD COMPILER
+           ========================================================================== */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.75rem;
+        }
+
+        .booth-manager {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .frame-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .selector-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+
+        .option-tab {
+            border: 1px solid var(--border);
+            background: transparent;
+            padding: 0.6rem;
+            border-radius: var(--radius-md);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .option-tab:hover {
+            border-color: var(--text-secondary);
+        }
+
+        .option-tab.active {
+            background-color: var(--text-primary);
+            color: #ffffff;
+            border-color: var(--text-primary);
+        }
+
+        /* The Live Preview Frame Wrapper */
+        .strip-preview-wrapper {
+            background-color: #f4f4f6;
+            border: 1px dashed var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+
+        /* Photobooth Minimalist Aesthetic Structural Strip Frame */
+        .photobooth-strip {
+            background-color: #ffffff; /* Frame base color default white */
+            padding: 18px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            width: 240px;
+            transition: var(--transition);
+        }
+
+        .photobooth-strip.frame-black {
+            background-color: #18181b;
+            color: #ffffff;
+        }
+
+        .photobooth-strip.frame-pink {
+            background-color: #fae8ff;
+        }
+
+        /* Structural Layout Mutations */
+        .photobooth-strip.layout-vertical {
+            flex-direction: column;
+            width: 220px;
+        }
+
+        .photobooth-strip.layout-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            width: 320px;
+        }
+
+        .photobooth-strip.layout-single {
+            width: 300px;
+        }
+
+        .strip-pane {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            background-color: #f4f4f6;
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .strip-pane img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .pane-delete-trigger {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background-color: rgba(239, 68, 110, 0.9);
+            color: #ffffff;
+            border: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: var(--transition);
+            z-index: 20;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .strip-pane:hover .pane-delete-trigger {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .pane-delete-trigger:hover {
+            background-color: var(--danger);
+            transform: scale(1.1) !important;
+        }
+
+        .pane-placeholder {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .strip-branding-footer {
+            text-align: center;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            padding: 0.5rem 0 0.25rem 0;
+            opacity: 0.6;
+        }
+
+        /* ==========================================================================
+           7. ALERT UTILITIES & FOOTER
+           ========================================================================== */
+        .notification-toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background-color: var(--text-primary);
+            color: #ffffff;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 1000;
+        }
+
+        .notification-toast.reveal {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        footer {
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+            background-color: var(--bg-secondary);
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <div class="brand-logo"></div>
+            <div class="brand-name">ZEROONE.Studio</div>
+        </div>
+        <div class="system-time" id="digital-clock">INITIALIZING METRICS...</div>
+    </header>
+
+    <div class="app-container">
+        
+        <main class="workspace">
+            
+            <section class="viewfinder-card">
+                <div class="viewfinder-header">
+                    <h2 class="viewfinder-title">Viewport Monitor</h2>
+                    <div class="system-time" id="stream-status" style="color: var(--danger);">DISCONNECTED</div>
+                </div>
+
+                <div class="camera-viewport">
+                    <div class="viewport-overlay">
+                        <div class="countdown-overlay" id="timer-modal">3</div>
+                    </div>
+                    <video id="webcam-feed" autoplay playsinline></video>
+                </div>
+
+                <div class="action-hub">
+                    <button class="btn btn-primary" id="trigger-snap-btn" disabled>
+                        Capture Frame
+                    </button>
+                    <button class="btn" id="stream-toggle-btn">Initialize Camera</button>
+                    <button class="btn btn-danger" id="purge-panes-btn" style="margin-left: auto;">Reset Grid</button>
+                </div>
+            </section>
+
+            <section class="filter-shelf">
+                <h3 class="shelf-title">Select Look (Non-Alay Filters)</h3>
+                <div class="filter-matrix">
+                    <div class="filter-node active" data-fx="fx-normal">
+                        <div class="filter-name">Pure.raw</div>
+                        <div class="filter-desc">No Filter</div>
+                    </div>
+                    <div class="filter-node" data-fx="fx-k-mono">
+                        <div class="filter-name">Seoul.mono</div>
+                        <div class="filter-desc">Classic B&W</div>
+                    </div>
+                    <div class="filter-node" data-fx="fx-warm">
+                        <div class="filter-name">Tokyo.warm</div>
+                        <div class="filter-desc">Cozy Retro</div>
+                    </div>
+                    <div class="filter-node" data-fx="fx-fade">
+                        <div class="filter-name">Seoul.fade</div>
+                        <div class="filter-desc">Matte Film</div>
+                    </div>
+                    <div class="filter-node" data-fx="fx-cold">
+                        <div class="filter-name">Nordic.cold</div>
+                        <div class="filter-desc">Clean Blue</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <aside class="sidebar">
+            <section class="booth-manager">
+                <h3 class="shelf-title">Print Configurator</h3>
+
+                <div class="frame-selector">
+                    <span class="selector-label">Layout Architecture</span>
+                    <div class="options-grid" id="layout-toggle-row">
+                        <button class="option-tab active" data-layout="layout-vertical">4 Strip</button>
+                        <button class="option-tab" data-layout="layout-grid">2x2 Grid</button>
+                        <button class="option-tab" data-layout="layout-single">1 Frame</button>
+                    </div>
+                </div>
+
+                <div class="frame-selector">
+                    <span class="selector-label">Matte Board Tone</span>
+                    <div class="options-grid" id="tone-toggle-row">
+                        <button class="option-tab active" data-tone="frame-white">Milk White</button>
+                        <button class="option-tab" data-tone="frame-black">Ink Black</button>
+                        <button class="option-tab" data-tone="frame-pink">Soft Pastel</button>
+                    </div>
+                </div>
+
+                <div class="strip-preview-wrapper">
+                    <div class="photobooth-strip layout-vertical frame-white" id="render-strip-target">
+                        </div>
+                </div>
+
+                <button class="btn btn-primary" id="download-strip-btn" style="width: 100%; justify-content: center; padding: 1rem;" disabled>
+                    Compile & Export Image
+                </button>
+            </section>
+        </aside>
+    </div>
+
+    <div class="notification-toast" id="toast-wrapper">NOTIFICATION_ALERT</div>
+
+    <footer>
+        ZEROONE.STUDIO REALTIME PROCESSING FRAMEWORK // ARCH 2026 // PRIVILEGED CODE MATRIX.
+    </footer>
+
+    <canvas id="processing-canvas" style="display: none;"></canvas>
+
+    <script>
+        /* Global State Manager */
+        const AppState = {
+            activeStream: null,
+            isStreamRunning: false,
+            currentFilterClass: 'fx-normal',
+            selectedLayout: 'layout-vertical',
+            selectedTone: 'frame-white',
+            capturedFrames: [], // Array to store Base64 images maximum size bounded by structural layouts
+            maxFramesCapacity: 4
+        };
+
+        /* Cache Pipeline Nodes */
+        const domWebcamFeed = document.getElementById('webcam-feed');
+        const domTriggerSnapBtn = document.getElementById('trigger-snap-btn');
+        const domStreamToggleBtn = document.getElementById('stream-toggle-btn');
+        const domPurgePanesBtn = document.getElementById('purge-panes-btn');
+        const domDownloadStripBtn = document.getElementById('download-strip-btn');
+        const domTimerModal = document.getElementById('timer-modal');
+        const domRenderStripTarget = document.getElementById('render-strip-target');
+        const domStreamStatus = document.getElementById('stream-status');
+        const domClockDisplay = document.getElementById('digital-clock');
+        const domToastWrapper = document.getElementById('toast-wrapper');
+        const domCanvas = document.getElementById('processing-canvas');
+
+        /* Initialize Clock Interface Metrics */
+        setInterval(() => {
+            const dateInstance = new Date();
+            domClockDisplay.innerText = `SYSTEM TIME: ${dateInstance.toTimeString().split(' ')[0]}`;
+        }, 1000);
+
+        /* Trigger Dynamic UI Alerts */
+        function triggerToast(messageString) {
+            domToastWrapper.innerText = messageString.toUpperCase();
+            domToastWrapper.classList.add('reveal');
+            setTimeout(() => {
+                domToastWrapper.classList.remove('reveal');
+            }, 2500);
+        }
+
+        /* Access Media Hardware Interface API */
+        async function engageWebCamPipeline() {
+            if (AppState.isStreamRunning) {
+                terminateWebCamPipeline();
+                return;
+            }
+
+            try {
+                const mediaConstraints = {
+                    video: { width: 1280, height: 960, facingMode: "user" },
+                    audio: false
+                };
+                
+                AppState.activeStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
+                domWebcamFeed.srcObject = AppState.activeStream;
+                AppState.isStreamRunning = true;
+                
+                domStreamToggleBtn.innerText = "Kill Cam Interface";
+                domStreamStatus.innerText = "ONLINE_FEED";
+                domStreamStatus.style.color = "var(--text-secondary)";
+                domTriggerSnapBtn.removeAttribute('disabled');
+                
+                triggerToast("Camera pipeline linked successfully");
+            } catch (hardwareException) {
+                console.error("Hardware access Exception:", hardwareException);
+                triggerToast("Driver attachment failed. Check permissions.");
+            }
+        }
+
+        function terminateWebCamPipeline() {
+            if (!AppState.activeStream) return;
+            
+            AppState.activeStream.getTracks().forEach(trackNode => trackNode.stop());
+            domWebcamFeed.srcObject = null;
+            AppState.isStreamRunning = false;
+            
+            domStreamToggleBtn.innerText = "Initialize Camera";
+            domStreamStatus.innerText = "DISCONNECTED";
+            domStreamStatus.style.color = "var(--danger)";
+            domTriggerSnapBtn.setAttribute('disabled', 'true');
+            
+            triggerToast("Camera pipe decoupled");
+        }
+
+        /* Filter Modulation Node Selector Mechanism */
+        document.querySelectorAll('.filter-node').forEach(nodeElement => {
+            nodeElement.addEventListener('click', () => {
+                document.querySelectorAll('.filter-node').forEach(activeNode => activeNode.classList.remove('active'));
+                nodeElement.classList.add('active');
+                
+                const chosenFx = nodeElement.getAttribute('data-fx');
+                domWebcamFeed.className = '';
+                domWebcamFeed.classList.add(chosenFx);
+                AppState.currentFilterClass = chosenFx;
+                
+                triggerToast(`Matrix look shift: ${nodeElement.querySelector('.filter-name').innerText}`);
+            });
+        });
+
+        /* Layout Architecture Configuration Adjusters */
+        document.querySelectorAll('#layout-toggle-row [data-layout]').forEach(layoutButton => {
+            layoutButton.addEventListener('click', () => {
+                document.querySelectorAll('#layout-toggle-row [data-layout]').forEach(btn => btn.classList.remove('active'));
+                layoutButton.classList.add('active');
+                
+                AppState.selectedLayout = layoutButton.getAttribute('data-layout');
+                
+                // Adjust dynamic capacities relative to layout shapes
+                if (AppState.selectedLayout === 'layout-vertical') AppState.maxFramesCapacity = 4;
+                if (AppState.selectedLayout === 'layout-grid') AppState.maxFramesCapacity = 4;
+                if (AppState.selectedLayout === 'layout-single') AppState.maxFramesCapacity = 1;
+                
+                // Enforce array slice if switching to smaller layout capacity
+                if (AppState.capturedFrames.length > AppState.maxFramesCapacity) {
+                    AppState.capturedFrames = AppState.capturedFrames.slice(0, AppState.maxFramesCapacity);
+                }
+                
+                syncStripRenderDisplay();
+            });
+        });
+
+        /* Tone Palette Matte Control Modulators */
+        document.querySelectorAll('#tone-toggle-row [data-tone]').forEach(toneButton => {
+            toneButton.addEventListener('click', () => {
+                document.querySelectorAll('#tone-toggle-row [data-tone]').forEach(btn => btn.classList.remove('active'));
+                toneButton.classList.add('active');
+                
+                AppState.selectedTone = toneButton.getAttribute('data-tone');
+                syncStripRenderDisplay();
+            });
+        });
+
+        /* Synchronize App Memory State into Dom Photobooth Component Layout Grid */
+        function syncStripRenderDisplay() {
+            // Apply Master classes configurations onto wireframe component
+            domRenderStripTarget.className = `photobooth-strip ${AppState.selectedLayout} ${AppState.selectedTone}`;
+            domRenderStripTarget.innerHTML = '';
+
+            // Generate populated slots matching data arrays element links
+            for (let indexValue = 0; indexValue < AppState.maxFramesCapacity; indexValue++) {
+                const paneNode = document.createElement('div');
+                paneNode.className = 'strip-pane';
+
+                if (AppState.capturedFrames[indexValue]) {
+                    const renderingImage = document.createElement('img');
+                    renderingImage.src = AppState.capturedFrames[indexValue];
+                    paneNode.appendChild(renderingImage);
+
+                    // Attach structural explicit functional Delete Trigger button item
+                    const deleteTrigger = document.createElement('button');
+                    deleteTrigger.className = 'pane-delete-trigger';
+                    deleteTrigger.innerHTML = '&times;';
+                    deleteTrigger.setAttribute('title', 'Delete photo');
+                    deleteTrigger.addEventListener('click', (pointerEvent) => {
+                        pointerEvent.stopPropagation(); // Avoid bubble executions triggers
+                        removeTargetedPaneIndex(indexValue);
+                    });
+                    paneNode.appendChild(deleteTrigger);
+                } else {
+                    const placeholderLabel = document.createElement('div');
+                    placeholderLabel.className = 'pane-placeholder';
+                    placeholderLabel.innerText = `PANE 0${indexValue + 1}`;
+                    paneNode.appendChild(placeholderLabel);
+                }
+
+                domRenderStripTarget.appendChild(paneNode);
+            }
+
+            // Generate branding sign elements at bottom footprint zone boundary
+            const brandingFooter = document.createElement('div');
+            brandingFooter.className = 'strip-branding-footer';
+            brandingFooter.innerText = 'MONO.STUDIO';
+            domRenderStripTarget.appendChild(brandingFooter);
+
+            // Validation check to flag compile button processing execution limits
+            if (AppState.capturedFrames.length === AppState.maxFramesCapacity) {
+                domDownloadStripBtn.removeAttribute('disabled');
+            } else {
+                domDownloadStripBtn.setAttribute('disabled', 'true');
+            }
+        }
+
+        /* Targeted Array element splice destruction mechanism function */
+        function removeTargetedPaneIndex(targetIndex) {
+            AppState.capturedFrames.splice(targetIndex, 1);
+            triggerToast(`Photo element 0${targetIndex + 1} destroyed`);
+            syncStripRenderDisplay();
+        }
+
+        /* Clean whole state pipeline completely */
+        domPurgePanesBtn.addEventListener('click', () => {
+            AppState.capturedFrames = [];
+            triggerToast("Grid structure reset complete");
+            syncStripRenderDisplay();
+        });
+
+        /* Photobooth Countdown Automation Interface */
+        domTriggerSnapBtn.addEventListener('click', () => {
+            if (!AppState.isStreamRunning) return;
+            if (AppState.capturedFrames.length >= AppState.maxFramesCapacity) {
+                triggerToast("Grid full! Clear layout parameters or reset grid.");
+                return;
+            }
+
+            domTriggerSnapBtn.setAttribute('disabled', 'true');
+            let counterValue = 3;
+            
+            domTimerModal.innerText = counterValue;
+            domTimerModal.classList.add('visible');
+
+            const trackingIntervalId = setInterval(() => {
+                counterValue--;
+                if (counterValue > 0) {
+                    domTimerModal.innerText = counterValue;
+                } else {
+                    clearInterval(trackingIntervalId);
+                    domTimerModal.classList.remove('visible');
+                    executeCanvasFrameExtraction();
+                    domTriggerSnapBtn.removeAttribute('disabled');
+                }
+            }, 800);
+        });
+
+        /* Core Image Processing Operations Engine */
+        function executeCanvasFrameExtraction() {
+            const renderingContext = domCanvas.getContext('2d');
+            
+            // Lock dimensions matching media standard aspects 4:3 ratios high fidelity
+            domCanvas.width = 800;
+            domCanvas.height = 600;
+
+            // Apply Canvas Processing transformations mirror coordinates map matrices
+            renderingContext.save();
+            renderingContext.translate(domCanvas.width, 0);
+            renderingContext.scale(-1, 1);
+
+            // Map UI Filter string matrices manually onto HTML5 Canvas element engine
+            let contextCanvasFilters = 'none';
+            if (AppState.currentFilterClass === 'fx-k-mono') contextCanvasFilters = 'grayscale(100%) contrast(1.1) brightness(0.95)';
+            if (AppState.currentFilterClass === 'fx-warm') contextCanvasFilters = 'sepia(0.25) saturate(1.1) contrast(0.95) brightness(1.02)';
+            if (AppState.currentFilterClass === 'fx-fade') contextCanvasFilters = 'contrast(0.88) brightness(1.04) sepia(0.15) saturate(0.9)';
+            if (AppState.currentFilterClass === 'fx-cold') contextCanvasFilters = 'hue-rotate(15deg) saturate(0.95) brightness(0.98) contrast(1.05)';
+            
+            renderingContext.filter = contextCanvasFilters;
+            
+            // Draw current active vector feed stream coordinates matrix down directly
+            renderingContext.drawImage(domWebcamFeed, 0, 0, domCanvas.width, domCanvas.height);
+            renderingContext.restore();
+
+            // Export frame into storage array pipeline string reference allocation
+            const frameBase64URL = domCanvas.toDataURL('image/jpeg', 0.92);
+            AppState.capturedFrames.push(frameBase64URL);
+            
+            triggerToast(`Frame buffered [${AppState.capturedFrames.length}/${AppState.maxFramesCapacity}]`);
+            syncStripRenderDisplay();
+        }
+
+        /* ==========================================================================
+           9. IMAGE COMPILED EXPORT ENGINE (ADVANCED CANVAS RENDERING RASTERIZER)
+           ========================================================================== */
+        domDownloadStripBtn.addEventListener('click', () => {
+            if (AppState.capturedFrames.length !== AppState.maxFramesCapacity) return;
+
+            triggerToast("Rasterizing compilation strip frame pipeline...");
+            const stripContext = domCanvas.getContext('2d');
+
+            /* Grid Layout Geometry Constants Definitive Matrix calculations */
+            const paneW = 640;
+            const paneH = 480;
+            const gapSpacing = 24;
+            const outerPadding = 36;
+            const brandingSpace = 60;
+
+            let canvasWidthTarget = 0;
+            let canvasHeightTarget = 0;
+
+            // Dimension configuration scaling based on choices
+            if (AppState.selectedLayout === 'layout-vertical') {
+                canvasWidthTarget = paneW + (outerPadding * 2);
+                canvasHeightTarget = (paneH * 4) + (gapSpacing * 3) + (outerPadding * 2) + brandingSpace;
+            } else if (AppState.selectedLayout === 'layout-grid') {
+                canvasWidthTarget = (paneW * 2) + gapSpacing + (outerPadding * 2);
+                canvasHeightTarget = (paneH * 2) + gapSpacing + (outerPadding * 2) + brandingSpace;
+            } else if (AppState.selectedLayout === 'layout-single') {
+                canvasWidthTarget = paneW + (outerPadding * 2);
+                canvasHeightTarget = paneH + (outerPadding * 2) + brandingSpace;
+            }
+
+            domCanvas.width = canvasWidthTarget;
+            domCanvas.height = canvasHeightTarget;
+
+            // Paint Master Background Board Tone Colors
+            let backgroundHexCode = '#ffffff';
+            if (AppState.selectedTone === 'frame-black') backgroundHexCode = '#18181b';
+            if (AppState.selectedTone === 'frame-pink') backgroundHexCode = '#fae8ff';
+
+            stripContext.fillStyle = backgroundHexCode;
+            stripContext.fillRect(0, 0, domCanvas.width, domCanvas.height);
+
+            // Sequential Image Drawing Pipeline Async Vector Tracker Matrix
+            let activeDrawingIndex = 0;
+            
+            function renderNextPaneToStrip() {
+                if (activeDrawingIndex >= AppState.maxFramesCapacity) {
+                    finalizeAndTriggerDownload();
+                    return;
+                }
+
+                const imageInstanceNode = new Image();
+                imageInstanceNode.src = AppState.capturedFrames[activeDrawingIndex];
+                
+                imageInstanceNode.onload = () => {
+                    let drawX = 0;
+                    let drawY = 0;
+
+                    if (AppState.selectedLayout === 'layout-vertical') {
+                        drawX = outerPadding;
+                        drawY = outerPadding + (activeDrawingIndex * (paneH + gapSpacing));
+                    } else if (AppState.selectedLayout === 'layout-grid') {
+                        const columnPosition = activeDrawingIndex % 2;
+                        const rowPosition = Math.floor(activeDrawingIndex / 2);
+                        drawX = outerPadding + (columnPosition * (paneW + gapSpacing));
+                        drawY = outerPadding + (rowPosition * (paneH + gapSpacing));
+                    } else if (AppState.selectedLayout === 'layout-single') {
+                        drawX = outerPadding;
+                        drawY = outerPadding;
+                    }
+
+                    stripContext.drawImage(imageInstanceNode, drawX, drawY, paneW, paneH);
+                    activeDrawingIndex++;
+                    renderNextPaneToStrip(); // Recursive loop tracker sequence
+                };
+            }
+
+            function finalizeAndTriggerDownload() {
+                // Render Branding footer text elements directly onto canvas grid space layout borders
+                stripContext.fillStyle = AppState.selectedTone === 'frame-black' ? '#ffffff' : '#18181b';
+                stripContext.font = 'bold 20px -apple-system, sans-serif';
+                stripContext.textAlign = 'center';
+                stripContext.letterSpacing = '6px';
+                stripContext.fillText('MONO.STUDIO', domCanvas.width / 2, domCanvas.height - outerPadding);
+
+                // Compile down completely to downloadable element entity links
+                try {
+                    const exportedDataStreamUrl = domCanvas.toDataURL('image/png');
+                    const virtualAnchorLink = document.createElement('a');
+                    virtualAnchorLink.download = `MONOSTUDIO_${Date.now()}.png`;
+                    virtualAnchorLink.href = exportedDataStreamUrl;
+                    virtualAnchorLink.click();
+                    triggerToast("Export successful! File downloaded.");
+                } catch (streamException) {
+                    console.error("Compilation raster failed:", streamException);
+                    triggerToast("Export security execution exception occurred.");
+                }
+            }
+
+            // Start processing recursively
+            renderNextPaneToStrip();
+        });
+
+        /* Core Initial Bind Links Trigger Operational Mechanisms */
+        domStreamToggleBtn.addEventListener('click', engageWebCamPipeline);
+        
+        // Initial setup run frame configuration layouts synchronization mappings
+        syncStripRenderDisplay();
+    </script>
+</body>
+</html>
